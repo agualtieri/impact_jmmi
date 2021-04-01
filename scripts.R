@@ -12,7 +12,7 @@ median_items <- data %>%                                                        
   summarise_all(funs(median(., na.rm = TRUE)))                                        # aggregate by median
 
 
-median_items <- median_items %>%                                                                            # full dataset
+median_items_dis <- median_items %>%                                                                            # full dataset
   select(-market) %>% group_by(governorate, district) %>%               # select only the items and aggregation columns
   summarise_all(funs(median(., na.rm = TRUE))) 
 

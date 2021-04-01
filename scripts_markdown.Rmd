@@ -21,7 +21,6 @@ tool <- read.csv("./inputs/test_tool.csv", stringsAsFactors = FALSE)
 month1 <- read.csv("./inputs/test_dataset_m1.csv", stringsAsFactors = FALSE)
 month2 <- read.csv("./inputs/test_dataset_m2.csv", stringsAsFactors = FALSE)
 
-df2 <- new_df <- rbind(month1, month2) 
 
 # load sources
 source("./R/find_outliers.R")
@@ -119,12 +118,18 @@ The first step to calculate the SMEB value is to aggregate prices using the medi
 
 ```{r median aggregation, message = FALSE, warning = FALSE}
 
-median_items <- data %>%                                                                            # full dataset
-                select(-uuid, -enum_id, -index) %>% group_by(governorate, district, market) %>%     # select only the items and aggregation columns
-                summarise_all(funs(median(., na.rm = TRUE)))                                        # aggregate by median
+median_items <- data %>%                                                                              
+                select(-uuid, -enum_id, -index) %>%                             # select only the items and aggregation columns
+                group_by(governorate, district, market) %>%                     # group by what you want
+                summarise_all(funs(median(., na.rm = TRUE)))                    # aggregate by median
 
-print(head(median_items, 3))
+print(head(median_items, 3))                                              # the output is an aggregation by governorate, district, and markets
 
+median_items_district <- data %>%                                                                            
+                        select(-uuid, -enum_id, -index, -market) %>% group_by(governorate, district) %>%     
+                        summarise_all(funs(median(., na.rm = TRUE)))  
+
+print(head(median_items_district, 3))                                     # the output is an aggregation by governorate, and district
 ```
 
 ### SMEB calculation
@@ -134,15 +139,15 @@ Below we show a few lines of code you can use to quickly calculate the SMEB valu
 ```{r smeb calculation, message = FALSE, warning = FALSE}
 # This piece of code will calculate the smeb value for each item
 
-smeb <- median_items %>% group_by(district) %>%  # the group_by can be changed based on the aggregation level you desire
-                         mutate(
-                                smeb_item1 = item1 * 0.5,
-                                smeb_item2 = item2 * 0.5,
-                                smeb_item3 = item3 * 0.5,
-                                smeb_item4 = item4 * 0.5,
-                                smeb_item5 = item5 * 0.5,
-                                smeb_item6 = item6 * 0.5
-                                ) 
+smeb <- median_items_district %>% group_by(district) %>%          # the group_by can be changed based on the aggregation level you desire
+                                  mutate(
+                                  smeb_item1 = item1 * 0.5,
+                                  smeb_item2 = item2 * 0.5,
+                                  smeb_item3 = item3 * 0.5,
+                                  smeb_item4 = item4 * 0.5,
+                                  smeb_item5 = item5 * 0.5,
+                                  smeb_item6 = item6 * 0.5
+                                  ) 
 
 print(head(smeb, 3))
 
@@ -165,11 +170,31 @@ print(head(smeb_no_NAs, 3))
 
 To correctly produce a trend analysis the two datasets that are compared need to balanced, meaning that the unit compare must be the same. 
 
-```{r tren analysis, message = FALSE, warning = FALSE}
+```{r trend analysis, message = FALSE, warning = FALSE}
+# After loading the datset from two consecutive months, we rbind them together
+data2 <- rbind(month1, month2) 
 
-df2$month_date<- lubridate::month(new_df$month)
+# We aggregate the median dataset to the desired level (district in this case)
+median_items_district <- data2 %>%                                                                            
+                                select(-uuid, -enum_id, -index, -market) %>% group_by(governorate, district) %>%     
+                                summarise_all(funs(median(., na.rm = TRUE)))  
 
-pct_change <- df2 %>% gropu_bypct_change_by_groups_all_numerics(df = new_df,group_var = district, time_id = month_date)
+# Calculate the smeb
+smeb <- median_items_district %>% group_by(district) %>%      
+                                  mutate(
+                                  smeb_item1 = item1 * 0.5,
+                                  smeb_item2 = item2 * 0.5,
+                                  smeb_item3 = item3 * 0.5,
+                                  smeb_item4 = item4 * 0.5,
+                                  smeb_item5 = item5 * 0.5,
+                                  smeb_item6 = item6 * 0.5
+                                  ) 
 
+# Create the comparison column
+data2$month_date<- lubridate::month(data2$month)
 
+# Run the percentag change formula taken from the butteR package
+pct_change <- data2 %>% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
+
+print(head(pct_change, 3))
 ```

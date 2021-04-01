@@ -233,17 +233,22 @@ head(outliers_table, 3)</code></pre>
 <div id="descriptive-statistics" class="section level3">
 <h3>Descriptive statistics</h3>
 <p>If you want to have a quick look at general descriptive statistics, the function “descriptive_stats” will show you min, max, and median values, as well as, first and second quartile values. The output is a table that can be saved as a dataframe.</p>
-<pre class="r"><code>descriptive_stats(data, &quot;district&quot;, starts_with(&quot;item&quot;)) %&gt;% head(,3)</code></pre>
-<pre><code>## # A tibble: 6 x 8
-## # Groups:   district [2]
-##   district    item1 item2 item3 item4  item5 item6 stats 
-##   &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; 
-## 1 district1   1407   100  1474   100    584    100 min   
-## 2 district1   2705   383  1802.  836.   961   1682 Q1    
-## 3 district1   3916.  765  1868  2013   3437   2373 median
-## 4 district1   4872  1580. 3050. 3302.  4034.  2897 Q3    
-## 5 district1  10000  2813  3655  4323  10000   3345 max   
-## 6 district10   100   100  1671   950   2138    100 min</code></pre>
+<pre class="r"><code>descriptive_stats(data, &quot;district&quot;, starts_with(&quot;item&quot;))</code></pre>
+<pre><code>## # A tibble: 60 x 8
+## # Groups:   district [12]
+##    district    item1 item2 item3  item4  item5  item6 stats 
+##    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; 
+##  1 district1   1407   100  1474    100    584    100  min   
+##  2 district1   2705   383  1802.   836.   961   1682  Q1    
+##  3 district1   3916.  765  1868   2013   3437   2373  median
+##  4 district1   4872  1580. 3050.  3302.  4034.  2897  Q3    
+##  5 district1  10000  2813  3655   4323  10000   3345  max   
+##  6 district10   100   100  1671    950   2138    100  min   
+##  7 district10  1244. 2010  2728.  1705   2564.  1190. Q1    
+##  8 district10  3705  2975  3770   2651   2780   2655  median
+##  9 district10  4790. 4176. 4114.  4162   3344.  4370. Q3    
+## 10 district10 10000  4675  4492  10000   3650  10000  max   
+## # ... with 50 more rows</code></pre>
 </div>
 <div id="falsification-test-silhouette-analysis" class="section level3">
 <h3>Falsification test / Silhouette Analysis</h3>
@@ -271,50 +276,57 @@ calculateEnumeratorSimilarity(data, tool, &quot;enum_id&quot;, &quot;governorate
 <div id="median-aggregation" class="section level3">
 <h3>Median aggregation</h3>
 <p>The first step to calculate the SMEB value is to aggregate prices using the median-of-medians methodology. This methodology ensures a balanced aggregation reducing the variance created by having markets largerly more surveyed compared to others.</p>
-<pre class="r"><code>median_items &lt;- data %&gt;%                                                                            # full dataset
-                select(-uuid, -enum_id, -index) %&gt;% group_by(governorate, district, market) %&gt;%     # select only the items and aggregation columns
-                summarise_all(funs(median(., na.rm = TRUE)))                                        # aggregate by median
+<pre class="r"><code>median_items &lt;- data %&gt;%                                                                              
+                select(-uuid, -enum_id, -index) %&gt;%                             # select only the items and aggregation columns
+                group_by(governorate, district, market) %&gt;%                     # group by what you want
+                summarise_all(funs(median(., na.rm = TRUE)))                    # aggregate by median
 
-print(median_items)</code></pre>
-<pre><code>## # A tibble: 26 x 9
-## # Groups:   governorate, district [12]
-##    governorate  district  market   item1 item2 item3 item4 item5 item6
-##    &lt;chr&gt;        &lt;chr&gt;     &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-##  1 governorate1 district1 market1  3981   100  3655  4323  1311  3345 
-##  2 governorate1 district1 market2  1407   100  1474  2603   611  2373 
-##  3 governorate1 district1 market3  4362   787  1868  1156  3735  2028 
-##  4 governorate1 district2 market4  3512. 2479  1909  3940  2740. 1847 
-##  5 governorate1 district3 market5  3087  3315  4002  1878. 1757  1230 
-##  6 governorate1 district3 market6  2776  2638. 2062. 2696. 1822. 3470 
-##  7 governorate1 district3 market7  3209  2257  3933  2917  1410. 1866.
-##  8 governorate2 district4 market8  3731  3356  1844  2489  3209  3524 
-##  9 governorate2 district4 market9  3591  1567  3293  2650  4625  3004 
-## 10 governorate2 district5 market10 2527  1862  1989  3265  3481  2828.
-## # ... with 16 more rows</code></pre>
+print(head(median_items, 3))                                              # the output is an aggregation by governorate, district, and markets</code></pre>
+<pre><code>## # A tibble: 3 x 9
+## # Groups:   governorate, district [1]
+##   governorate  district  market  item1 item2 item3 item4 item5 item6
+##   &lt;chr&gt;        &lt;chr&gt;     &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 governorate1 district1 market1  3981   100  3655  4323  1311  3345
+## 2 governorate1 district1 market2  1407   100  1474  2603   611  2373
+## 3 governorate1 district1 market3  4362   787  1868  1156  3735  2028</code></pre>
+<pre class="r"><code>median_items_district &lt;- data %&gt;%                                                                            
+                        select(-uuid, -enum_id, -index, -market) %&gt;% group_by(governorate, district) %&gt;%     
+                        summarise_all(funs(median(., na.rm = TRUE)))  
+
+print(head(median_items_district, 3))                                     # the output is an aggregation by governorate, and district</code></pre>
+<pre><code>## # A tibble: 3 x 8
+## # Groups:   governorate [1]
+##   governorate  district  item1 item2 item3 item4 item5 item6
+##   &lt;chr&gt;        &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 governorate1 district1 3916.   765  1868 2013  3437  2373 
+## 2 governorate1 district2 3512.  2479  1909 3940  2740. 1847 
+## 3 governorate1 district3 2932.  3094  3670 1916. 1640  2530.</code></pre>
 </div>
 <div id="smeb-calculation" class="section level3">
 <h3>SMEB calculation</h3>
+<p>Below we show a few lines of code you can use to quickly calculate the SMEB value after having calculated the median price per item. The calculation will be different based on the weights and the items included in the SMEB. If you nee to split the calcul</p>
 <pre class="r"><code># This piece of code will calculate the smeb value for each item
 
-smeb &lt;- median_items %&gt;% mutate(
-              smeb_item1 = item1 * 0.5,
-              smeb_item2 = item2 * 0.5,
-              smeb_item3 = item3 * 0.5,
-              smeb_item4 = item4 * 0.5,
-              smeb_item5 = item5 * 0.5,
-              smeb_item6 = item6 * 0.5
-              ) 
+smeb &lt;- median_items_district %&gt;% group_by(district) %&gt;%          # the group_by can be changed based on the aggregation level you desire
+                                  mutate(
+                                  smeb_item1 = item1 * 0.5,
+                                  smeb_item2 = item2 * 0.5,
+                                  smeb_item3 = item3 * 0.5,
+                                  smeb_item4 = item4 * 0.5,
+                                  smeb_item5 = item5 * 0.5,
+                                  smeb_item6 = item6 * 0.5
+                                  ) 
 
 print(head(smeb, 3))</code></pre>
-<pre><code>## # A tibble: 3 x 15
-## # Groups:   governorate, district [1]
-##   governorate district market item1 item2 item3 item4 item5 item6 smeb_item1
-##   &lt;chr&gt;       &lt;chr&gt;    &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
-## 1 governorat~ distric~ marke~  3981   100  3655  4323  1311  3345      1990.
-## 2 governorat~ distric~ marke~  1407   100  1474  2603   611  2373       704.
-## 3 governorat~ distric~ marke~  4362   787  1868  1156  3735  2028      2181 
-## # ... with 5 more variables: smeb_item2 &lt;dbl&gt;, smeb_item3 &lt;dbl&gt;,
-## #   smeb_item4 &lt;dbl&gt;, smeb_item5 &lt;dbl&gt;, smeb_item6 &lt;dbl&gt;</code></pre>
+<pre><code>## # A tibble: 3 x 14
+## # Groups:   district [3]
+##   governorate district item1 item2 item3 item4 item5 item6 smeb_item1 smeb_item2
+##   &lt;chr&gt;       &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+## 1 governorat~ distric~ 3916.   765  1868 2013  3437  2373       1958.       382.
+## 2 governorat~ distric~ 3512.  2479  1909 3940  2740. 1847       1756.      1240.
+## 3 governorat~ distric~ 2932.  3094  3670 1916. 1640  2530.      1466.      1547 
+## # ... with 4 more variables: smeb_item3 &lt;dbl&gt;, smeb_item4 &lt;dbl&gt;,
+## #   smeb_item5 &lt;dbl&gt;, smeb_item6 &lt;dbl&gt;</code></pre>
 <pre class="r"><code># If NAs are present the following code will input the median value of the district of govenorate of choice to fill the blank
 smeb_no_NAs &lt;- smeb %&gt;% group_by(district) %&gt;%  # the group_by can be changed based on what median value you want to input
                         mutate(
@@ -328,17 +340,50 @@ smeb_no_NAs &lt;- smeb %&gt;% group_by(district) %&gt;%  # the group_by can be c
 
 print(head(smeb_no_NAs, 3))</code></pre>
 <pre><code>## # A tibble: 3 x 8
-## # Groups:   district [1]
+## # Groups:   district [3]
 ##   governorate district smeb_item1 smeb_item2 smeb_item3 smeb_item4 smeb_item5
 ##   &lt;chr&gt;       &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
-## 1 governorat~ distric~      1990.        50       1828.      2162.       656.
-## 2 governorat~ distric~       704.        50        737       1302.       306.
-## 3 governorat~ distric~      2181        394.       934        578       1868.
+## 1 governorat~ distric~      1958.       382.       934       1006.      1718.
+## 2 governorat~ distric~      1756.      1240.       954.      1970       1370.
+## 3 governorat~ distric~      1466.      1547       1835        958.       820 
 ## # ... with 1 more variable: smeb_item6 &lt;dbl&gt;</code></pre>
 </div>
 <div id="trend-analysis" class="section level3">
 <h3>Trend analysis</h3>
 <p>To correctly produce a trend analysis the two datasets that are compared need to balanced, meaning that the unit compare must be the same.</p>
+<pre class="r"><code># After loading the datset from two consecutive months, we rbind them together
+data2 &lt;- rbind(month1, month2) 
+
+# We aggregate the median dataset to the desired level (district in this case)
+median_items_district &lt;- data2 %&gt;%                                                                            
+                                select(-uuid, -enum_id, -index) %&gt;% group_by(governorate, district) %&gt;%     
+                                summarise_all(funs(median(., na.rm = TRUE)))  
+
+# Calculate the smeb
+smeb &lt;- median_items_district %&gt;% group_by(district) %&gt;%      
+                                  mutate(
+                                  smeb_item1 = item1 * 0.5,
+                                  smeb_item2 = item2 * 0.5,
+                                  smeb_item3 = item3 * 0.5,
+                                  smeb_item4 = item4 * 0.5,
+                                  smeb_item5 = item5 * 0.5,
+                                  smeb_item6 = item6 * 0.5
+                                  ) 
+
+# Create the comparison column
+data2$month_date&lt;- lubridate::month(data2$month)
+
+# Run the percentag change formula taken from the butteR package
+pct_change &lt;- data2 %&gt;% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
+
+print(head(pct_change, 3))</code></pre>
+<pre><code>## # A tibble: 3 x 8
+## # Groups:   district [1]
+##   district  item1  item2 item3 item4  item5  item6 index
+##   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1 district1 -64.7    0   -59.7 -39.8 -53.4  -29.1  100  
+## 2 district1 246.  2274   133.   53.7 463.     5.48  50  
+## 3 district1 105.   -66.8 -46.1 -71.1   8.67 -96.0   33.3</code></pre>
 </div>
 </div>
 
