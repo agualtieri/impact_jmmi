@@ -170,10 +170,10 @@ pre code {
 
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>This (living) document will provide users with a list of scripts useful for conducting basic cleaning and analysis of JMMI data. This is more a repository of code and scripts rather than a full working package. The document is divided into two sections: cleaning and analysis.</p>
+<p>This (living) document will provide users with a list of scripts useful for conducting basic cleaning and analysis of JMMI data. This is more a repository of code and scripts rather than a full working package. The document is divided into two sections: Cleaning and Analysis.</p>
 <p>The first section, cleaning, will focus on a few packages/chunks of code, the user can employ during the data cleaning phase. These include, duplicates correction, outliers detection, min and max analysis, and enumerator falsification analysis.</p>
 <p>The second section, analysis, focuses on the calculations needed to compute aggregated median prices (following the median-of-medians methodology), SMEB and MEB aggregations, and trend analysis.</p>
-<p>For further inquires reach out to Chris (<a href="mailto:chris.paci@reach-initiative.org" class="email">chris.paci@reach-initiative.org</a>) and Alberto (<a href="mailto:alberto.gualtieri@impact-initiatives.org" class="email">alberto.gualtieri@impact-initiatives.org</a>).</p>
+<p>For further inquires or if you would like to have different type of checks included, please reach out to Chris (<a href="mailto:chris.paci@reach-initiative.org" class="email">chris.paci@reach-initiative.org</a>) and/or Alberto (<a href="mailto:alberto.gualtieri@impact-initiatives.org" class="email">alberto.gualtieri@impact-initiatives.org</a>).</p>
 <pre class="r"><code># Load test data
 head(data, 3)</code></pre>
 <pre><code>##   uuid enum_id  governorate  district  market item1 item2 item3 item4 item5
@@ -189,7 +189,7 @@ head(data, 3)</code></pre>
 <h1>Data Cleaning</h1>
 <div id="minimum-standards" class="section level3">
 <h3>Minimum Standards</h3>
-<p>The minimum standards function allows you to quickly check how many markets per area of interest have been collected by the enumerators. The function returns a table with the number of market collected aggregated by your variable of interest (it can be subdsitrict, district, or governorate).</p>
+<p>The minimum standards function allows you to quickly check how many markets per area of interest have been collected by the enumerators. The function returns a table with the number of market collected aggregated by your variable of interest (it can be district, or governorate).</p>
 <pre class="r"><code>minium_standards(data, district, market)</code></pre>
 <pre><code>## # A tibble: 26 x 4
 ## # Groups:   district [12]
@@ -252,7 +252,7 @@ head(outliers_table, 3)</code></pre>
 </div>
 <div id="falsification-test-silhouette-analysis" class="section level3">
 <h3>Falsification test / Silhouette Analysis</h3>
-<p>A “Silhouette Analysis” is based on the “gower” distance between surveys which is a metric that measures the dissimilarities between two items with mixed numeric and non-numeric data. This method checks for anomalies assuming the datast is clustered around the enumerator ID. A silhouette value of 1 indicats that the entries of the cluster are very similar to each other, while a value close to 0 or negative indicates the opposite. Values close to 1 should raise a flag as it means that enumerators are filling surveyes very similar to one another.</p>
+<p>A “Silhouette Analysis” is based on the “gower” distance between surveys which is a metric that measures the dissimilarities between two items with mixed numeric and non-numeric data. This method checks for anomalies assuming the datast is clustered around the enumerator ID. A silhouette value of 1 indicates that the entries of the cluster are very similar to each other, while a value close to 0 or negative indicates the opposite. Values close to 1 should raise a flag as it means that enumerators are filling surveys very similar to one another.</p>
 <p>For more information on this type of falsification test you can read <a href="https://en.wikipedia.org/wiki/Silhouette_(clustering)">here</a>, and <a href="https://medium.com/@rumman1988/clustering-categorical-and-numerical-datatype-using-gower-distance-ab89b3aa90d9">here</a>.</p>
 <pre class="r"><code># To run the function you will need the dataset, the kobo tool, the enumerator_id or enumerator_name colun, and and admin column
 
@@ -275,13 +275,14 @@ calculateEnumeratorSimilarity(data, tool, &quot;enum_id&quot;, &quot;governorate
 <h1>Data Analysis</h1>
 <div id="median-aggregation" class="section level3">
 <h3>Median aggregation</h3>
-<p>The first step to calculate the SMEB value is to aggregate prices using the median-of-medians methodology. This methodology ensures a balanced aggregation reducing the variance created by having markets largerly more surveyed compared to others.</p>
-<pre class="r"><code>median_items &lt;- data %&gt;%                                                                              
+<p>The first step to calculate the SMEB value is to aggregate prices using the median-of-medians methodology. This methodology ensures a balanced aggregation reducing the variance created by having markets largely more surveyed compared to others.</p>
+<pre class="r"><code># Aggregation by governorate, district, and market
+median_items &lt;- data %&gt;%                                                                              
                 select(-uuid, -enum_id, -index) %&gt;%                             # select only the items and aggregation columns
                 group_by(governorate, district, market) %&gt;%                     # group by what you want
                 summarise_all(funs(median(., na.rm = TRUE)))                    # aggregate by median
 
-print(head(median_items, 3))                                              # the output is an aggregation by governorate, district, and markets</code></pre>
+print(head(median_items, 3))                                             </code></pre>
 <pre><code>## # A tibble: 3 x 9
 ## # Groups:   governorate, district [1]
 ##   governorate  district  market  item1 item2 item3 item4 item5 item6
@@ -289,11 +290,12 @@ print(head(median_items, 3))                                              # the 
 ## 1 governorate1 district1 market1  3981   100  3655  4323  1311  3345
 ## 2 governorate1 district1 market2  1407   100  1474  2603   611  2373
 ## 3 governorate1 district1 market3  4362   787  1868  1156  3735  2028</code></pre>
-<pre class="r"><code>median_items_district &lt;- data %&gt;%                                                                            
+<pre class="r"><code># Aggregation by governorate and district
+median_items_district &lt;- data %&gt;%                                                                            
                         select(-uuid, -enum_id, -index, -market) %&gt;% group_by(governorate, district) %&gt;%     
                         summarise_all(funs(median(., na.rm = TRUE)))  
 
-print(head(median_items_district, 3))                                     # the output is an aggregation by governorate, and district</code></pre>
+print(head(median_items_district, 3))                                     </code></pre>
 <pre><code>## # A tibble: 3 x 8
 ## # Groups:   governorate [1]
 ##   governorate  district  item1 item2 item3 item4 item5 item6
@@ -304,7 +306,7 @@ print(head(median_items_district, 3))                                     # the 
 </div>
 <div id="smeb-calculation" class="section level3">
 <h3>SMEB calculation</h3>
-<p>Below we show a few lines of code you can use to quickly calculate the SMEB value after having calculated the median price per item. The calculation will be different based on the weights and the items included in the SMEB. If you nee to split the calcul</p>
+<p>Below we show a few lines of code you can use to quickly calculate the SMEB value after having calculated the median price per item. The calculation will be different based on the weights and the items included in the SMEB. If you nee to split the calculation across multiple SMEBs you can split the code.</p>
 <pre class="r"><code># This piece of code will calculate the smeb value for each item
 
 smeb &lt;- median_items_district %&gt;% group_by(district) %&gt;%          # the group_by can be changed based on the aggregation level you desire
@@ -350,13 +352,12 @@ print(head(smeb_no_NAs, 3))</code></pre>
 </div>
 <div id="trend-analysis" class="section level3">
 <h3>Trend analysis</h3>
-<p>To correctly produce a trend analysis the two datasets that are compared need to balanced, meaning that the unit compare must be the same.</p>
 <pre class="r"><code># After loading the datset from two consecutive months, we rbind them together
 data2 &lt;- rbind(month1, month2) 
 
 # We aggregate the median dataset to the desired level (district in this case)
 median_items_district &lt;- data2 %&gt;%                                                                            
-                                select(-uuid, -enum_id, -index) %&gt;% group_by(governorate, district) %&gt;%     
+                                select(-uuid, -enum_id, -index, -market) %&gt;% group_by(month, governorate, district) %&gt;%     
                                 summarise_all(funs(median(., na.rm = TRUE)))  
 
 # Calculate the smeb
@@ -371,19 +372,21 @@ smeb &lt;- median_items_district %&gt;% group_by(district) %&gt;%
                                   ) 
 
 # Create the comparison column
-data2$month_date&lt;- lubridate::month(data2$month)
+smeb$month_date&lt;- lubridate::month(smeb$month)
 
 # Run the percentag change formula taken from the butteR package
-pct_change &lt;- data2 %&gt;% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
+pct_change &lt;- smeb %&gt;% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
 
 print(head(pct_change, 3))</code></pre>
-<pre><code>## # A tibble: 3 x 8
-## # Groups:   district [1]
-##   district  item1  item2 item3 item4  item5  item6 index
-##   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-## 1 district1 -64.7    0   -59.7 -39.8 -53.4  -29.1  100  
-## 2 district1 246.  2274   133.   53.7 463.     5.48  50  
-## 3 district1 105.   -66.8 -46.1 -71.1   8.67 -96.0   33.3</code></pre>
+<pre><code>## # A tibble: 3 x 13
+## # Groups:   district [3]
+##   district item1 item2 item3 item4  item5 item6 smeb_item1 smeb_item2 smeb_item3
+##   &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+## 1 distric~ 56.7  360.  122.  115.    7.80  54.3      56.7       360.       122. 
+## 2 distric~  2.27 -55.2  30.4 124.   46.6   70.9       2.27      -55.2       30.4
+## 3 distric~ 61.1   11.6  44.3  51.0 -13.4  -28.1      61.1        11.6       44.3
+## # ... with 3 more variables: smeb_item4 &lt;dbl&gt;, smeb_item5 &lt;dbl&gt;,
+## #   smeb_item6 &lt;dbl&gt;</code></pre>
 </div>
 </div>
 

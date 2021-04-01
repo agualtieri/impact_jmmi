@@ -33,13 +33,13 @@ source("./R/data_falsification.R")
 
 # Introduction
 
-This (living) document will provide users with a list of scripts useful for conducting basic cleaning and analysis of JMMI data. This is more a repository of code and scripts rather than a full working package. The document is divided into two sections: cleaning and analysis. 
+This (living) document will provide users with a list of scripts useful for conducting basic cleaning and analysis of JMMI data. This is more a repository of code and scripts rather than a full working package. The document is divided into two sections: Cleaning and Analysis. 
 
 The first section, cleaning, will focus on a few packages/chunks of code, the user can employ during the data cleaning phase. These include, duplicates correction, outliers detection, min and max analysis, and enumerator falsification analysis. 
 
 The second section, analysis, focuses on the calculations needed to compute aggregated median prices (following the median-of-medians methodology), SMEB and MEB aggregations, and trend analysis.
 
-For further inquires reach out to Chris (chris.paci@reach-initiative.org) and Alberto (alberto.gualtieri@impact-initiatives.org).
+For further inquires or if you would like to have different type of checks included, please reach out to Chris (chris.paci@reach-initiative.org) and/or Alberto (alberto.gualtieri@impact-initiatives.org).
 
 ```{r test dataset}
 # Load test data
@@ -49,7 +49,7 @@ head(data, 3)
 
 ### Minimum Standards
 
-The minimum standards function allows you to quickly check how many markets per area of interest have been collected by the enumerators. The function returns a table with the number of market collected aggregated by your variable of interest (it can be subdsitrict, district, or governorate).
+The minimum standards function allows you to quickly check how many markets per area of interest have been collected by the enumerators. The function returns a table with the number of market collected aggregated by your variable of interest (it can be district, or governorate).
 
 ```{r minimum standards, message = FALSE, warning = FALSE}
 minium_standards(data, district, market)
@@ -85,7 +85,6 @@ If you want to read more about boxplot you can find a guide [here](https://www.s
 ```{r boxplots, message = FALSE, warning = FALSE}
 item_boxplots(data, "district", starts_with("item"))
 
-
 ```
 
 ### Descriptive statistics
@@ -100,7 +99,7 @@ descriptive_stats(data, "district", starts_with("item"))
 
 ### Falsification test / Silhouette Analysis
 
-A "Silhouette Analysis" is based on the "gower" distance between surveys which is a metric that measures the dissimilarities between two items with mixed numeric and non-numeric data. This method checks for anomalies assuming the datast is clustered around the enumerator ID. A silhouette value of 1 indicats that the entries of the cluster are very similar to each other, while a value close to 0 or negative indicates the opposite. Values close to 1 should raise a flag as it means that enumerators are filling surveyes very similar to one another.
+A "Silhouette Analysis" is based on the "gower" distance between surveys which is a metric that measures the dissimilarities between two items with mixed numeric and non-numeric data. This method checks for anomalies assuming the datast is clustered around the enumerator ID. A silhouette value of 1 indicates that the entries of the cluster are very similar to each other, while a value close to 0 or negative indicates the opposite. Values close to 1 should raise a flag as it means that enumerators are filling surveys very similar to one another.
 
 For more information on this type of falsification test you can read [here](https://en.wikipedia.org/wiki/Silhouette_(clustering)), and [here](https://medium.com/@rumman1988/clustering-categorical-and-numerical-datatype-using-gower-distance-ab89b3aa90d9).
 
@@ -114,27 +113,29 @@ calculateEnumeratorSimilarity(data, tool, "enum_id", "governorate")
 
 ### Median aggregation
 
-The first step to calculate the SMEB value is to aggregate prices using the median-of-medians methodology. This methodology ensures a balanced aggregation reducing the variance created by having markets largerly more surveyed compared to others.
+The first step to calculate the SMEB value is to aggregate prices using the median-of-medians methodology. This methodology ensures a balanced aggregation reducing the variance created by having markets largely more surveyed compared to others.
 
 ```{r median aggregation, message = FALSE, warning = FALSE}
 
+# Aggregation by governorate, district, and market
 median_items <- data %>%                                                                              
                 select(-uuid, -enum_id, -index) %>%                             # select only the items and aggregation columns
                 group_by(governorate, district, market) %>%                     # group by what you want
                 summarise_all(funs(median(., na.rm = TRUE)))                    # aggregate by median
 
-print(head(median_items, 3))                                              # the output is an aggregation by governorate, district, and markets
+print(head(median_items, 3))                                             
 
+# Aggregation by governorate and district
 median_items_district <- data %>%                                                                            
                         select(-uuid, -enum_id, -index, -market) %>% group_by(governorate, district) %>%     
                         summarise_all(funs(median(., na.rm = TRUE)))  
 
-print(head(median_items_district, 3))                                     # the output is an aggregation by governorate, and district
+print(head(median_items_district, 3))                                     
 ```
 
 ### SMEB calculation
 
-Below we show a few lines of code you can use to quickly calculate the SMEB value after having calculated the median price per item. The calculation will be different based on the weights and the items included in the SMEB. If you nee to split the calcul
+Below we show a few lines of code you can use to quickly calculate the SMEB value after having calculated the median price per item. The calculation will be different based on the weights and the items included in the SMEB. If you nee to split the calculation across multiple SMEBs you can split the code.
 
 ```{r smeb calculation, message = FALSE, warning = FALSE}
 # This piece of code will calculate the smeb value for each item
@@ -168,7 +169,6 @@ print(head(smeb_no_NAs, 3))
 
 ### Trend analysis
 
-To correctly produce a trend analysis the two datasets that are compared need to balanced, meaning that the unit compare must be the same. 
 
 ```{r trend analysis, message = FALSE, warning = FALSE}
 # After loading the datset from two consecutive months, we rbind them together
@@ -176,8 +176,8 @@ data2 <- rbind(month1, month2)
 
 # We aggregate the median dataset to the desired level (district in this case)
 median_items_district <- data2 %>%                                                                            
-                                select(-uuid, -enum_id, -index, -market) %>% group_by(governorate, district) %>%     
-                                summarise_all(funs(median(., na.rm = TRUE)))  
+                         select(-uuid, -enum_id, -index, -market) %>% group_by(month, governorate, district) %>%     
+                         summarise_all(funs(median(., na.rm = TRUE)))  
 
 # Calculate the smeb
 smeb <- median_items_district %>% group_by(district) %>%      
@@ -191,10 +191,10 @@ smeb <- median_items_district %>% group_by(district) %>%
                                   ) 
 
 # Create the comparison column
-data2$month_date<- lubridate::month(data2$month)
+smeb$month_date<- lubridate::month(smeb$month)
 
 # Run the percentag change formula taken from the butteR package
-pct_change <- data2 %>% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
+pct_change <- smeb %>% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
 
 print(head(pct_change, 3))
 ```
