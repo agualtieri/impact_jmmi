@@ -194,7 +194,12 @@ smeb <- median_items_district %>% group_by(district) %>%
 smeb$month_date<- lubridate::month(smeb$month)
 
 # Run the percentag change formula taken from the butteR package
-pct_change <- smeb %>% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
+
+# If needed download the latest version of th butteR package and load the library
+# devtools::install_github("zackarno/butteR")
+# library(butteR)
+
+pct_change <- smeb %>% pct_change_by_groups_all_numerics(group_var = "district", time_id = "month_date")
 
 print(head(pct_change, 3))
 ```

@@ -357,8 +357,8 @@ data2 &lt;- rbind(month1, month2)
 
 # We aggregate the median dataset to the desired level (district in this case)
 median_items_district &lt;- data2 %&gt;%                                                                            
-                                select(-uuid, -enum_id, -index, -market) %&gt;% group_by(month, governorate, district) %&gt;%     
-                                summarise_all(funs(median(., na.rm = TRUE)))  
+                         select(-uuid, -enum_id, -index, -market) %&gt;% group_by(month, governorate, district) %&gt;%     
+                         summarise_all(funs(median(., na.rm = TRUE)))  
 
 # Calculate the smeb
 smeb &lt;- median_items_district %&gt;% group_by(district) %&gt;%      
@@ -375,7 +375,7 @@ smeb &lt;- median_items_district %&gt;% group_by(district) %&gt;%
 smeb$month_date&lt;- lubridate::month(smeb$month)
 
 # Run the percentag change formula taken from the butteR package
-pct_change &lt;- smeb %&gt;% pct_change_by_groups_all_numerics(group_var = district, time_id = month_date)
+pct_change &lt;- smeb %&gt;% pct_change_by_groups_all_numerics(group_var = &quot;district&quot;, time_id = &quot;month_date&quot;)
 
 print(head(pct_change, 3))</code></pre>
 <pre><code>## # A tibble: 3 x 13
