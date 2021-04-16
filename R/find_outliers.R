@@ -1,4 +1,12 @@
 find_outliers <- function(data) {
+  
+  # delete useless cols
+  vec <- c("date", "start", "end", "today", 
+             "audit", "note", "calculate", "deviceid", "geopoint", "id", "X_id","X__version__", "__version__")
+  data <- data[, !(names(data) %in% vec)]
+  
+  # add or fix index col
+  data <- data %>% mutate(index = 1:n())
 
   # helper function - normal outliers
   data_validation_outliers_normal <- function(data, maximum_standard_deviations = 3) {
