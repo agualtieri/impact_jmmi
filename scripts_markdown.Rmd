@@ -121,21 +121,21 @@ median_items <- data %>%
                 select("afg_region", "afg_prov", "afg_dist", "location_city", ends_with("_price")) %>%                                       # group by the selected aggregation variables
                 group_by(afg_region, afg_prov, afg_dist, location_city) %>%
                 # summarise everything by medians
-                summarise_all(funs(median(., na.rm = TRUE)))                    
+                summarise_all(list(~median(., na.rm = TRUE)))                    
 
 
 # Aggregation to district level using medians-of-medians
 median_items_district <- median_items %>%                                                                            
                          select("afg_region", "afg_prov", "afg_dist", ends_with("_price")) %>%  
                          group_by(afg_region, afg_prov, afg_dist) %>%
-                         summarise_all(funs(median(., na.rm = TRUE)))  
+                         summarise_all(list(~median(., na.rm = TRUE)))  
 
 
 # Aggregation to province level using medians-of-medians
 median_items_province <- median_items_district %>%                                                                           
                          select("afg_region", "afg_prov", ends_with("_price")) %>%  
                          group_by(afg_region, afg_prov) %>%
-                         summarise_all(funs(median(., na.rm = TRUE)))  
+                         summarise_all(list(~median(., na.rm = TRUE)))  
 
 print(head(median_items_province, 3)) 
 
@@ -144,7 +144,7 @@ print(head(median_items_province, 3))
 median_items_region <- median_items_province %>%                                                                           
                          select("afg_region", ends_with("_price")) %>%  
                          group_by(afg_region) %>%
-                         summarise_all(funs(median(., na.rm = TRUE)))  
+                         summarise_all(list(~median(., na.rm = TRUE)))  
 
 
 
