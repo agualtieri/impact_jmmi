@@ -35,24 +35,16 @@ check_time <- function(data, duration_threshold_lower, duration_threshold_upper)
   #time_problems <- rbind(too_short, too_long)
   
   time_problems <- dplyr::filter(same_date, issue_type != "form duration is ok")
-  time_problems <- mutate(time_problems, status_name= ifelse(status == "yes", "refugee", "host community"))
-  
+
   if(nrow(same_date)>=1){
     
     colnames(time_problems)[grep("uuid", colnames(time_problems))] <- "uuid"
-#    time_problems$enumerator <- time_problems$enumerator
-#    time_problems$sub_county_div <- time_problems$sub_county_div
-    time_problems$status_name <- time_problems$status_name
     time_problems$variable <- "Completion Duration (min)"
     time_problems$has_issue <- "TRUE"
     time_problems$issue_type <- time_problems$issue_type
-#    
-#    
+    
   } else {
-#    
-#    time_problems$enumerator <- as.character()
-#    time_problems$sub_county_div <- as.character()
-    time_problems$status_name <- as.character()
+    
     time_problems$variable <- as.character()
     time_problems$has_issue <- as.character()
     time_problems$issue_type <- as.character()
@@ -60,7 +52,7 @@ check_time <- function(data, duration_threshold_lower, duration_threshold_upper)
    }
 #
 #  
-  time_grab <- time_problems %>% dplyr::select(uuid, status_name, duration_min, variable,	has_issue,	issue_type)
-  names(time_grab) <- c("uuid", "status",	"value",	"variable",	"has_issue",	"issue_type")
+  time_grab <- time_problems %>% dplyr::select(uuid, duration_min, variable,	has_issue,	issue_type)
+  names(time_grab) <- c("uuid", "value",	"variable",	"has_issue",	"issue_type")
  return(time_grab)
 }

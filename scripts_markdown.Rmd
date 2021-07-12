@@ -17,8 +17,10 @@ library(openxlsx)
 # load dataset
 data <- read.xlsx("./inputs/afg_data_nov.xlsx", detectDates = TRUE)
 
-month1 <- read.xlsx("./inputs/afg_data_nov.xlsx", detectDates = TRUE)
-month2 <- read.xlsx("./inputs/afg_data_dec.xlsx", detectDates = TRUE)
+
+
+#month1 <- read.xlsx("./inputs/afg_data_nov.xlsx", detectDates = TRUE)
+#month2 <- read.xlsx("./inputs/afg_data_dec.xlsx", detectDates = TRUE)
 
 # load sources
 source("./R/find_outliers.R")
