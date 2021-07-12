@@ -10,7 +10,7 @@ item_boxplots <- function(data, group_var, items){
 item_boxplots_formatted <- function(data, group_var, items){
   
   # melt data
-  data.m <- data %>% select(group_var, items) %>% melt()
+  data.m <- as.data.frame(data) %>% select(group_var, items) %>% melt()
   
   # helper function
   f <- function(x) {
