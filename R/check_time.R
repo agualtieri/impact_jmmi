@@ -20,19 +20,14 @@ check_time <- function(data, duration_threshold_lower, duration_threshold_upper)
   same_date$time_long_flag <- ifelse(same_date$duration_min>=duration_threshold_upper,1,0)
   
   ## Add Issue column
-  same_date <- mutate(same_date, issue_type = ifelse((time_short_flag >= 1), "form duration too short", 
-                                                     ifelse((time_long_flag >= 1), "form duration too long", "form duration is ok")))
-  
-  
-  ## seperate the filtering into those surveys that are too long and those that are too short
-  #too_short <- same_date %>% dplyr::filter(time_short_flag == 1)
-  #too_short$issue_type <- "form duration too short"
-  #too_long <- same_date %>% dplyr::filter(time_long_flag == 1)
-  #too_long$issue_type <- "form duration too long"
+  same_date <- same_date %>% mutate(issue_type = case_when(
+                                                          time_short_flag == 1 ~ "form duration too short",
+                                                          time_long_flag == 1 ~ "form duration too long",
+                                                          TRUE ~ "form duration is ok"
+                                                          ))
 
   
-  ## bind and reformat the two culprits !!!
-  #time_problems <- rbind(too_short, too_long)
+
   
   time_problems <- dplyr::filter(same_date, issue_type != "form duration is ok")
 
@@ -54,5 +49,5 @@ check_time <- function(data, duration_threshold_lower, duration_threshold_upper)
 #  
   time_grab <- time_problems %>% dplyr::select(uuid, duration_min, variable,	has_issue,	issue_type)
   names(time_grab) <- c("uuid", "value",	"variable",	"has_issue",	"issue_type")
- return(time_grab)
+  return(time_grab)
 }
